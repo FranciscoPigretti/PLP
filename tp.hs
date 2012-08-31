@@ -99,7 +99,7 @@ conexo grafo = if null (nodos grafo)
 				else conexoDesde grafo [head (nodos grafo)]
 
 conexoDesde::Eq a => Grafo a -> [a] -> Bool
-conexoDesde grafo marcados = if (length marcados == length (nodos grafo)) 
+conexoDesde grafo marcados = if conjuntosIguales marcados (nodos grafo)
 									then True
 									else if conjuntosIguales marcados (agrandarMarcados grafo marcados) 
 											then False
