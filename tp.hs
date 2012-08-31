@@ -29,11 +29,6 @@ sucesores grafo nodo = adyacencias grafo nodo
 adyacenciasNoDirigidas::Eq a => Grafo a -> a -> [a]
 adyacenciasNoDirigidas grafo nodo = sucesores grafo nodo ++ predecesores grafo nodo
 
-
---marcados:: Eq a => Grafo a -> [a]
---marcados grafo = marcadosDesde grafo (head nodos grafo) []
---marcados = union acum ()
-
 --Funciones pedidas--
 
 agregarNodo::Eq a => Grafo a -> a ->Grafo a
@@ -64,8 +59,6 @@ gradoOut grafo nodo = length (adyacencias grafo nodo)
 
 gradoIn::Eq a => Grafo a -> a -> Int
 gradoIn grafo nodo = length (predecesores grafo nodo)
---gradoIn grafo nodo = length [ 1 | nodo_origen <- nodos grafo, elem nodo (adyacencias grafo nodo_origen)]
---Este estaba mal! gradoIn grafo nodo = length [ nodo_destino | nodo_origen <- nodos grafo, nodo_destino <- adyacencias grafo nodo_origen, nodo == nodo_destino]
 
 maximoGrado::Eq a => Grafo a -> Int
 maximoGrado grafo = maximum (map (grado grafo) (nodos grafo))
@@ -114,6 +107,7 @@ conexoDesde grafo marcados = if (length marcados == length (nodos grafo))
 
 agrandarMarcados::Eq a => Grafo a -> [a] -> [a]
 agrandarMarcados grafo marcados = union marcados [vecino | x <- marcados, vecino <- adyacenciasNoDirigidas grafo x ]
+-- Tengo un conjunto de nodos marcados. Itero sobre cada uno y marco los vecinos, agrandando (o manteniendo igual) al conjunto.
 
 --Grafos de prueba--
 grafo1::Grafo Char
@@ -139,3 +133,12 @@ grafo4 = agregarEje grafo3 5 1
 
 grafo5::Grafo Int
 grafo5 = agregarEje grafo3 1 5
+
+grafo6::Grafo Int
+grafo6 = G (nodos grafo5) (adyacenciasNoDirigidas grafo5)
+
+grafo7::Grafo Int
+grafo7 = agregarNodo grafo3 0
+
+grafo8::Grafo Int
+grafo8 = agregarNodo grafo5 0
