@@ -116,14 +116,14 @@ grafo1 = G ['a','b','c'] ady1
 		ady1 'a' = "bc"
 		ady1 'b' = "c"
 		ady1 'c' = ""
-		ady1 x = error "El nodo "++(x:" no pertenece al grafo")
+		ady1 x = error ("El nodo "++(x:" no pertenece al grafo"))
 
 grafo2::Grafo Char
 grafo2 = G ['a','c'] ady2
 	  where
 		ady2 'a' = ['c']
 		ady2 'c' = []
-		ady2 x = error "El nodo "++(x:" no pertenece al grafo")
+		ady2 x = error ("El nodo "++(x:" no pertenece al grafo"))
 		
 grafo3::Grafo Int
 grafo3 = G [1,2,3,4,5] (\x->filter (<= 5) [2*x,2*x+1])
