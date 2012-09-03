@@ -24,7 +24,7 @@ predecesores::Eq a => a -> Grafo a -> [a]
 predecesores nodo grafo = (filter (\nodo_origen -> elem nodo (adyacencias grafo nodo_origen)) (nodos grafo))
 
 sucesores:: a -> Grafo a -> [a] --Es un renombre de adyacencias
-sucesores nodo grafo = adyacencias grafo nodo 
+sucesores = flip adyacencias
 
 adyacenciasNoDirigidas::Eq a =>Grafo a -> a  -> [a]
 adyacenciasNoDirigidas grafo nodo = sucesores nodo grafo ++ predecesores nodo grafo
@@ -104,8 +104,8 @@ caminarGrafoEnBuscaDeCicloDesde nodoInicial nodoActual grafo = if null (vecinos 
 																else (if elem nodoInicial (vecinos nodoActual grafo) then True
 																		else any (== True) (map (\vecino -> caminarGrafoEnBuscaDeCicloDesde nodoInicial vecino (sacarEjeSinImportarDireccion nodoActual vecino grafo)) (vecinos nodoActual grafo)))
 
-vecinos::Eq a => a -> Grafo a -> [a] -- Es un renombre de adyacenciasNoDirigidas
-vecinos nodo grafo = adyacenciasNoDirigidas grafo nodo
+vecinos::Eq a => a -> Grafo a -> [a] -- Es un renombre de adyacenciasNoDirigidas con los parametros al revez
+vecinos = flip adyacenciasNoDirigidas
 
 sacarEjeSinImportarDireccion:: Eq a => a -> a -> Grafo a -> Grafo a
 sacarEjeSinImportarDireccion nodo1 nodo2 grafo = if (sacarEje nodo1 nodo2 grafo) == grafo then sacarEje nodo2 nodo1 grafo
@@ -125,7 +125,7 @@ conexoDesde grafo marcados = if conjuntosIguales marcados (nodos grafo)
 											else conexoDesde grafo (agrandarMarcados grafo marcados)
 
 agrandarMarcados::Eq a => Grafo a -> [a] -> [a]
-agrandarMarcados grafo marcados = union marcados [vecino | x <- marcados, vecino <- adyacenciasNoDirigidas grafo x ]
+agrandarMarcados grafo marcados = union marcados (concat (map (\x -> adyacenciasNoDirigidas grafo x) marcados))
 -- Tengo un conjunto de nodos marcados. Itero sobre cada uno y marco los vecinos, agrandando (o manteniendo igual) al conjunto.
 
 --Grafos de prueba--
@@ -136,14 +136,14 @@ grafo1 = G ['a','b','c'] ady1
 		ady1 'a' = "bc"
 		ady1 'b' = "c"
 		ady1 'c' = ""
-		ady1 x = error "El nodo "++(x:" no pertenece al grafo")
+		ady1 x = error ("El nodo "++(x:" no pertenece al grafo"))
 
 grafo2::Grafo Char
 grafo2 = G ['a','c'] ady2
 	  where
 		ady2 'a' = ['c']
 		ady2 'c' = []
-		ady2 x = error "El nodo "++(x:" no pertenece al grafo")
+		ady2 x = error ("El nodo "++(x:" no pertenece al grafo"))
 		
 grafo3::Grafo Int
 grafo3 = G [1,2,3,4,5] (\x->filter (<= 5) [2*x,2*x+1])
