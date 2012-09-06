@@ -91,25 +91,11 @@ subgrafoInducido grafo nodos = if (estanLosNodos nodos grafo)
 -- No usé la función diferencia, como recomienda en el ejercicio. Tal vez me estoy perdiendo de algo
 
 -- Ej8
-enCiclo::Eq a => a -> Grafo a -> Bool
-enCiclo nodo grafo = if estanLosNodos [nodo] grafo 
-							then caminarGrafoEnBuscaDeCicloDesde nodo nodo (sacarNodosDeGradoMenorADos grafo)
-							else error "el nodo no pertenece al grafo"
+enCiclo::Eq a => Grafo a -> Bool
+enCiclo grafo = length (nodos (last (take (length (nodos grafo)) (iterate sacarNodosDeGradoMenorADos grafo)))) > 1
 
 sacarNodosDeGradoMenorADos::Eq a => Grafo a -> Grafo a
 sacarNodosDeGradoMenorADos grafo = subgrafoInducido grafo (filter (\nodo -> grado nodo grafo >= 2) (nodos grafo))
-
-caminarGrafoEnBuscaDeCicloDesde::Eq a => a -> a -> Grafo a -> Bool
-caminarGrafoEnBuscaDeCicloDesde nodoInicial nodoActual grafo = if null (vecinos nodoActual grafo) then False
-																else (if elem nodoInicial (vecinos nodoActual grafo) then True
-																		else any (== True) (map (\vecino -> caminarGrafoEnBuscaDeCicloDesde nodoInicial vecino (sacarEjeSinImportarDireccion nodoActual vecino grafo)) (vecinos nodoActual grafo)))
-
-vecinos::Eq a => a -> Grafo a -> [a] -- Es un renombre de adyacenciasNoDirigidas con los parametros al revez
-vecinos = flip adyacenciasNoDirigidas
-
-sacarEjeSinImportarDireccion:: Eq a => a -> a -> Grafo a -> Grafo a
-sacarEjeSinImportarDireccion nodo1 nodo2 grafo = if (sacarEje nodo1 nodo2 grafo) == grafo then sacarEje nodo2 nodo1 grafo
-													else sacarEje nodo1 nodo2 grafo
 
 -- Ej9
 conexo::Eq a => Grafo a -> Bool
@@ -127,6 +113,10 @@ conexoDesde grafo marcados = if conjuntosIguales marcados (nodos grafo)
 agrandarMarcados::Eq a => Grafo a -> [a] -> [a]
 agrandarMarcados grafo marcados = union marcados (concat (map (\x -> adyacenciasNoDirigidas grafo x) marcados))
 -- Tengo un conjunto de nodos marcados. Itero sobre cada uno y marco los vecinos, agrandando (o manteniendo igual) al conjunto.
+
+-- Ej10
+esUnArbol::Eq a => Grafo a -> Bool
+esUnArbol grafo = not (enCiclo grafo) && (conexo grafo)
 
 --Grafos de prueba--
 
