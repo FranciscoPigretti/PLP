@@ -1,3 +1,5 @@
+module Grafo where
+
 import List
 
 --Definición de Grafo--
@@ -8,17 +10,17 @@ data Grafo a = G {nodos :: [a], adyacencias :: a->[a]}
 conjuntosIguales::Eq a =>[a]->[a]->Bool
 conjuntosIguales xs ys = (all (flip elem xs) ys) && (all (flip elem ys) xs)
 
-sacarDeLista::Eq a => a -> [a] -> [a]
-sacarDeLista x ys = filter (`notElem` [x]) ys
-
-estanLosNodos::Eq a => [a] -> Grafo a -> Bool
-estanLosNodos ns grafo = all (`elem` (nodos grafo)) ns
-
 instance Eq a =>Eq (Grafo a) where
   (==) g1 g2 = (conjuntosIguales (nodos g1) (nodos g2)) && (all (\x->conjuntosIguales (adyacencias g1 x) (adyacencias g2 x)) (nodos g1))
 
 instance Show a =>Show (Grafo a) where
 	show (G nodos adyacencias) = "[\n" ++ concat (map (\x -> " " ++ show x ++ " -> " ++ show (adyacencias x) ++ "\n") nodos) ++ "]"
+
+sacarDeLista::Eq a => a -> [a] -> [a]
+sacarDeLista x ys = filter (`notElem` [x]) ys
+
+estanLosNodos::Eq a => [a] -> Grafo a -> Bool
+estanLosNodos ns grafo = all (`elem` (nodos grafo)) ns
 
 predecesores::Eq a => a -> Grafo a -> [a]
 predecesores nodo grafo = (filter (\nodo_origen -> elem nodo (adyacencias grafo nodo_origen)) (nodos grafo))
@@ -39,7 +41,7 @@ agregarNodo nodo grafo = if (not (estanLosNodos [nodo] grafo))
 
 -- Ej2						 
 agregarEje::Eq a => a -> a -> Grafo a -> Grafo a
-agregarEje nodo1 nodo2 grafo = 	if (estanLosNodos [nodo1,nodo2] grafo && notElem nodo2 (adyacencias grafo nodo1))
+agregarEje nodo1 nodo2 grafo = 	if not(nodo1 == nodo2) && (estanLosNodos [nodo1,nodo2] grafo && notElem nodo2 (adyacencias grafo nodo1))
 								then G (nodos grafo) (\x -> if x == nodo1 then nodo2 : (adyacencias grafo nodo1) else adyacencias grafo x)
 								else grafo
 
@@ -57,7 +59,9 @@ sacarNodo nodo grafo = 	if (estanLosNodos [nodo] grafo)
 
 -- Ej5 a)
 grado::Eq a => a -> Grafo a -> Int
-grado nodo grafo = gradoOut nodo grafo + gradoIn nodo grafo
+grado nodo grafo = 	if (estanLosNodos [nodo] grafo)
+					then gradoOut nodo grafo + gradoIn nodo grafo
+					else error "El nodo no pertenece al grafo"
 
 gradoOut:: a -> Grafo a -> Int
 gradoOut nodo grafo = length (adyacencias grafo nodo)
@@ -67,7 +71,9 @@ gradoIn nodo grafo = length (predecesores nodo grafo)
 
 -- Ej5 b)
 maximoGrado::Eq a => Grafo a -> Int
-maximoGrado grafo = maximum (map (flip grado grafo) (nodos grafo))
+maximoGrado grafo = if length (nodos grafo) > 0 
+					then maximum (map (flip grado grafo) (nodos grafo)) -- maximum no esta definido para listas vacias, asi que fallaba si el grafo no tenia nodos. Por eso el chequeo 
+					else 0
 
 -- Ej6 a)
 diferencia::Eq a => [a] -> [a] -> [a]
@@ -119,7 +125,6 @@ esUnArbol::Eq a => Grafo a -> Bool
 esUnArbol grafo = not (enCiclo grafo) && (conexo grafo)
 
 --Grafos de prueba--
-
 grafo1::Grafo Char
 grafo1 = G ['a','b','c'] ady1
 	  where
