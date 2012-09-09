@@ -8,11 +8,6 @@ allTests = test [
 	"grafo" ~: testsGrafo
 	]
 
--- INVARIANTE DE LOS GRAFOS
--- no pueden tener nodos repetidos, 
--- no debe tener lazos - ejes de un nodo a sí mismo - 
--- y todos los ejes deben apuntar a nodos que estén en en grafo
-
 testsGrafo = test [
 	-- Tests agregarNodo
 	--un nodo
@@ -23,7 +18,7 @@ testsGrafo = test [
 	[1] ~~? (nodos (agregarNodo 1 (agregarNodo 1 grafoVacio))),
 	
 	-- Tests agregarEje
-	--lazo
+	--un lazo
 	[] ~~? (adyacencias (agregarEje 1 1(agregarNodo 1 grafoVacio)) 1),
 	--una conexion
 	[2] ~~? (adyacencias (agregarEje 1 2 (agregarNodo 2 (agregarNodo 1 grafoVacio))) 1),
@@ -31,7 +26,7 @@ testsGrafo = test [
 	[2,3] ~~? (adyacencias (agregarEje 1 3 (agregarEje 1 2 (agregarNodo 3 (agregarNodo 2 (agregarNodo 1 grafoVacio))))) 1),
 	--eje repetido
 	[2] ~~? (adyacencias (agregarEje 1 2 (agregarEje 1 2 (agregarNodo 3 (agregarNodo 2 (agregarNodo 1 grafoVacio))))) 1),
-	--nodo inexistente
+	--con un nodo inexistente
 	[] ~~? (adyacencias (agregarEje 1 2 (agregarNodo 1 grafoVacio)) 1),
 	
 	-- Tests sacarEjes
@@ -47,9 +42,9 @@ testsGrafo = test [
 	[2] ~~? (adyacencias (sacarEje 1 1 (agregarEje 1 2 (agregarNodo 2 (agregarNodo 1 grafoVacio)))) 1),
 	
 	-- Tests sacarNodo
-	--nodo existente
+	--un nodo existente
 	[2] ~~? (nodos (sacarNodo 1 (agregarNodo 2 (agregarNodo 1 grafoVacio)))),
-	--nodo inexistente
+	--un nodo inexistente
 	[1,2] ~~? (nodos (sacarNodo 4 (agregarNodo 2 (agregarNodo 1 grafoVacio)))),
 	--dos veces el mismo nodo
 	[2] ~~? (nodos (sacarNodo 1 (sacarNodo 1 (agregarNodo 2 (agregarNodo 1 grafoVacio))))),
@@ -62,7 +57,7 @@ testsGrafo = test [
 	--de un nodo existente
 	2 ~=? (grado 1 (agregarEje 1 3 (agregarEje 1 2 (agregarNodo 3 (agregarNodo 2 (agregarNodo 1 grafoVacio)))))),
 	--de un nodo inexistente
-	--(grado 1 (agregarEje 1 3 (agregarEje 1 2 (agregarNodo 3 (agregarNodo 2 (agregarNodo 1 grafoVacio)))))) --> Lanza excepcion
+	--(grado 1 (agregarEje 1 3 (agregarEje 1 2 (agregarNodo 3 (agregarNodo 2 (agregarNodo 1 grafoVacio)))))) --> Lanza excepcion dado que no podemos pedir el grado de un nodo que no existe en el grafo
 	
 	-- Tests maximoGrado
 	--de un grafo vacio
@@ -83,7 +78,55 @@ testsGrafo = test [
 	--invirtiendo uno de los ejes
 	False ~=? (esSubgrafo (agregarEje 3 1 (agregarEje 1 2 (agregarNodo 3 (agregarNodo 2 (agregarNodo 1 grafoVacio))))) (agregarEje 1 3 (agregarEje 1 2 (agregarNodo 3 (agregarNodo 2 (agregarNodo 1 grafoVacio)))))),
 	--sacando un nodo
-	True ~=? (esSubgrafo (agregarEje 1 2 (agregarNodo 2 (agregarNodo 1 grafoVacio))) (agregarEje 3 1 (agregarEje 1 2 (agregarNodo 3 (agregarNodo 2 (agregarNodo 1 grafoVacio))))))
+	True ~=? (esSubgrafo (agregarEje 1 2 (agregarNodo 2 (agregarNodo 1 grafoVacio))) (agregarEje 3 1 (agregarEje 1 2 (agregarNodo 3 (agregarNodo 2 (agregarNodo 1 grafoVacio)))))),
+	
+	-- Tests subgrafoInducido
+	--sobre un grafo vacio
+	grafoVacio ~=? (subgrafoInducido grafoVacio []),
+	--error ~=? (nodos (subgrafoInducido grafoVacio [1])),    --> Lanza una excepcion dado que la lista de nodos pasada como segundo parametro, no pertencen al grafo.
+	--sobre un grafo no vacio
+	(agregarNodo 1 grafoVacio) ~=? (subgrafoInducido (agregarEje 1 2 (agregarNodo 2 (agregarNodo 1 grafoVacio))) [1]),
+	(agregarEje 1 2 (agregarNodo 2 (agregarNodo 1 grafoVacio))) ~=? (subgrafoInducido (agregarEje 3 1 (agregarEje 3 2 (agregarNodo 3 (agregarEje 1 2 (agregarNodo 2 (agregarNodo 1 grafoVacio)))))) [1,2]),
+	
+	-- Tests enCiclo
+	--sobre un grafo vacio
+	False ~=? enCiclo grafoVacio,
+	--sobre un grafo con nodos y sin conexiones
+	False ~=? enCiclo (agregarNodo 2 (agregarNodo 1 grafoVacio)),
+	--sobre un grafo lineal
+	False ~=? enCiclo (agregarEje 3 2 (agregarEje 2 1 (agregarNodo 3 (agregarNodo 2 (agregarNodo 1 grafoVacio))))),
+	--sobre un grafo con un ciclo
+	True ~=? enCiclo (agregarEje 1 3 (agregarEje 3 2 (agregarEje 2 1 (agregarNodo 3 (agregarNodo 2 (agregarNodo 1 grafoVacio)))))),
+	--sobre un grafo con un nodo puente entre dos ciclos
+	True ~=? enCiclo (agregarEje 5 4 (agregarEje 4 5 (agregarEje 3 4 (agregarEje 2 3 (agregarEje 2 1 (agregarEje 1 2 (agregarNodo 5 (agregarNodo 4 (agregarNodo 3 (agregarNodo 2 (agregarNodo 1 grafoVacio))))))))))),
+	
+	-- Tests conexo
+	--sobre un grafo vacio
+	True ~=? conexo grafoVacio,
+	--sobre un grafo con un solo nodo
+	True ~=? conexo (agregarNodo 1 grafoVacio),
+	--sobre un grafo con varios nodos pero sin ejes
+	False ~=? conexo (agregarNodo 3 (agregarNodo 2 (agregarNodo 1 grafoVacio))),
+	--sobre un grafo con algunos ejes, pero no todos los nodos conectados
+	False ~=? conexo (agregarEje 3 1 (agregarNodo 3 (agregarNodo 2 (agregarNodo 1 grafoVacio)))),
+	--sobre un grafo con todos los nodos conectados
+	True ~=? conexo (agregarEje 3 1 (agregarEje 3 2 (agregarNodo 3 (agregarNodo 2 (agregarNodo 1 grafoVacio))))),
+	--sobre un grafo con ciclos
+	True ~=? conexo (agregarEje 3 1 (agregarEje 3 2 (agregarEje 2 1 (agregarEje 2 3 (agregarNodo 3 (agregarNodo 2 (agregarNodo 1 grafoVacio))))))),
+	
+	-- Tests esUnArbol
+	--sobre un grafo vacio
+	True ~=? esUnArbol grafoVacio,
+	--sobre un grafo con un solo nodo
+	True ~=? esUnArbol (agregarNodo 1 grafoVacio),
+	--sobre un grafo con varios nodos pero sin ejes
+	False ~=? esUnArbol (agregarNodo 3 (agregarNodo 2 (agregarNodo 1 grafoVacio))),
+	--sobre un grafo con algunos ejes, pero no todos los nodos conectados
+	False ~=? esUnArbol (agregarEje 3 1 (agregarNodo 3 (agregarNodo 2 (agregarNodo 1 grafoVacio)))),
+	--sobre un grafo con todos los nodos conectados
+	True ~=? esUnArbol (agregarEje 3 1 (agregarEje 3 2 (agregarNodo 3 (agregarNodo 2 (agregarNodo 1 grafoVacio))))),
+	--sobre un grafo con ciclos
+	False ~=? esUnArbol (agregarEje 3 1 (agregarEje 3 2 (agregarEje 2 1 (agregarEje 2 3 (agregarNodo 3 (agregarNodo 2 (agregarNodo 1 grafoVacio)))))))
 	]
 	
 ---------------
