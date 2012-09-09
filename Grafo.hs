@@ -98,7 +98,10 @@ subgrafoInducido grafo nodos = if (estanLosNodos nodos grafo)
 
 -- Ej8
 enCiclo::Eq a => Grafo a -> Bool
-enCiclo grafo = length (nodos (last (take (length (nodos grafo)) (iterate sacarNodosDeGradoMenorADos grafo)))) > 1
+enCiclo grafo = chequearTerminacion (iterate sacarNodosDeGradoMenorADos grafo)
+
+chequearTerminacion::Eq a => [Grafo a] -> Bool
+chequearTerminacion (x:xs) = if (x == head xs) then length (nodos x) > 1 else chequearTerminacion xs
 
 sacarNodosDeGradoMenorADos::Eq a => Grafo a -> Grafo a
 sacarNodosDeGradoMenorADos grafo = subgrafoInducido grafo (filter (\nodo -> grado nodo grafo >= 2) (nodos grafo))
