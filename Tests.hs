@@ -57,7 +57,7 @@ testsGrafo = test [
 	--de un nodo existente
 	2 ~=? (grado 1 (agregarEje 1 3 (agregarEje 1 2 (agregarNodo 3 (agregarNodo 2 (agregarNodo 1 grafoVacio)))))),
 	--de un nodo inexistente
-	--(grado 1 (agregarEje 1 3 (agregarEje 1 2 (agregarNodo 3 (agregarNodo 2 (agregarNodo 1 grafoVacio)))))) --> Lanza excepcion dado que no podemos pedir el grado de un nodo que no existe en el grafo
+	--(grado 2 (agregarNodo 1 grafoVacio)) --> Lanza excepcion dado que no podemos pedir el grado de un nodo que no existe en el grafo
 	
 	-- Tests maximoGrado
 	--de un grafo vacio
