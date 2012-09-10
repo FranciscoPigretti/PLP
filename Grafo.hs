@@ -34,84 +34,101 @@ adyacenciasNoDirigidas grafo nodo = sucesores nodo grafo ++ predecesores nodo gr
 --Funciones pedidas--
 
 -- Ej1
+--Agrega un nodo si el nodo no pertenece al grafo.
 agregarNodo::Eq a => a -> Grafo a -> Grafo a
 agregarNodo nodo grafo = if (not (estanLosNodos [nodo] grafo))
 						 then G (nodo : nodos grafo) (\x -> if x == nodo then [] else adyacencias grafo x)
 						 else grafo
 
--- Ej2						 
+-- Ej2			
+--Agrega un eje. Chequeamos: que los nodos no sean el mismo (para no agregar lazos),
+-- que los nodos pertenezcan al grafo, y que no exista ya un eje entre ellos.
 agregarEje::Eq a => a -> a -> Grafo a -> Grafo a
 agregarEje nodo1 nodo2 grafo = 	if not(nodo1 == nodo2) && (estanLosNodos [nodo1,nodo2] grafo && notElem nodo2 (adyacencias grafo nodo1))
 								then G (nodos grafo) (\x -> if x == nodo1 then nodo2 : (adyacencias grafo nodo1) else adyacencias grafo x)
 								else grafo
 
 -- Ej3
+--Saca un eje solo si los nodos pertenecen al grafo y existe tal eje entre ellos.
 sacarEje::Eq a => a -> a -> Grafo a -> Grafo a
 sacarEje nodo1 nodo2 grafo = 	if (estanLosNodos [nodo1,nodo2] grafo && elem nodo2 (adyacencias grafo nodo1))
 								then G (nodos grafo) (\x -> if x == nodo1 then sacarDeLista nodo2 (adyacencias grafo nodo1) else adyacencias grafo x)
 								else grafo
 
 -- Ej4
+--Saca un nodo solo si está en el grafo.
 sacarNodo::Eq a => a -> Grafo a -> Grafo a
 sacarNodo nodo grafo = 	if (estanLosNodos [nodo] grafo) 
 						then G (sacarDeLista nodo (nodos grafo)) (\x -> if elem nodo (adyacencias grafo x) then adyacencias (sacarEje x nodo grafo) x else adyacencias grafo x)
 						else grafo
 
 -- Ej5 a)
+--Devuelve el grado de un nodo si el nodo pertenece al grafo.
 grado::Eq a => a -> Grafo a -> Int
 grado nodo grafo = 	if (estanLosNodos [nodo] grafo)
 					then gradoOut nodo grafo + gradoIn nodo grafo
 					else error "El nodo no pertenece al grafo"
 
+--Devuelve la cantidad de ejes 'salientes' del nodo.
 gradoOut:: a -> Grafo a -> Int
 gradoOut nodo grafo = length (adyacencias grafo nodo)
 
+--Devuelve la cantidad de ejes 'entrantes' al nodo.
 gradoIn::Eq a => a -> Grafo a -> Int
 gradoIn nodo grafo = length (predecesores nodo grafo)
 
 -- Ej5 b)
+--Devuelve el grado del nodo con mayor grado. Devuelve 0 si el grafo no tiene nodos.
 maximoGrado::Eq a => Grafo a -> Int
 maximoGrado grafo = if length (nodos grafo) > 0 
 					then maximum (map (flip grado grafo) (nodos grafo)) -- maximum no esta definido para listas vacias, asi que fallaba si el grafo no tenia nodos. Por eso el chequeo 
 					else 0
 
 -- Ej6 a)
+--A la lista1 le saca los elementos que aparecen en la lista2. Si la lista1 tiene repetidos, estos quedan.
 diferencia::Eq a => [a] -> [a] -> [a]
-diferencia lista1 lista2 = filter (`notElem` lista2) lista1 --A la lista1 le saco los que aparecen en la lista2. Si la lista1 tiene repetidos, estos quedan. ¿está bien o está mal?
+diferencia lista1 lista2 = filter (`notElem` lista2) lista1 
 
 -- Ej6 b)
+--Responde si el grafo1 es subgrafo del grafo2.
 esSubgrafo::Eq a => Grafo a -> Grafo a -> Bool
 esSubgrafo grafo1 grafo2 = 	(estanLosNodos (nodos grafo1) grafo2)
 							&&
 							(all (== True) (map (\n -> conjuntoIncluido  (adyacencias grafo1 n) (adyacencias grafo2 n)) (nodos grafo1)))
 
-
+--Responde si una lista como conjunto está incluida en otra.
 conjuntoIncluido::Eq a => [a] -> [a] -> Bool
 conjuntoIncluido xs ys = null (diferencia xs ys)
 
 -- Ej7
+--Devuelve el subgrafo inducido por un conjunto de nodos. Chequeamos que los nodos pertenezcan al grafo.
 subgrafoInducido::Eq a => Grafo a -> [a] -> Grafo a
 subgrafoInducido grafo nodos = if (estanLosNodos nodos grafo)
 									then G nodos (\x -> if elem x nodos then intersect nodos (adyacencias grafo x) else error "El nodo no pertenece")
 									else error "el conjunto de nodos no es subconjunto de los nodos del grafo"
--- No usé la función diferencia, como recomienda en el ejercicio. Tal vez me estoy perdiendo de algo
 
 -- Ej8
-enCiclo::Eq a => Grafo a -> Bool
-enCiclo grafo = chequearTerminacion (iterate sacarNodosDeGradoMenorADos grafo)
+--Responde si el grafo tiene un ciclo no dirigido. Iterativamente saca los nodos con grado menos
+-- a 2, hasta que ya no se puedan sacar más nodos. Si quedaron nodos en el grafo, entonces hay ciclo.
+tieneCicloNoDirigido::Eq a => Grafo a -> Bool
+tieneCicloNoDirigido grafo = chequearTerminacion (iterate sacarNodosDeGradoMenorADos grafo)
 
+--Si los dos primeros grafos de una lista son iguales, entonces no se pudieron sacar más nodos.
 chequearTerminacion::Eq a => [Grafo a] -> Bool
 chequearTerminacion (x:xs) = if (x == head xs) then length (nodos x) > 1 else chequearTerminacion xs
 
+--Devuelve el subgrafo inducido por los nodos que tienen grado mayor o igual a 2.
 sacarNodosDeGradoMenorADos::Eq a => Grafo a -> Grafo a
 sacarNodosDeGradoMenorADos grafo = subgrafoInducido grafo (filter (\nodo -> grado nodo grafo >= 2) (nodos grafo))
 
 -- Ej9
+--Responde si un grafo es conexo.
 conexo::Eq a => Grafo a -> Bool
 conexo grafo = if null (nodos grafo) 
 				then True
 				else conexoDesde grafo [head (nodos grafo)]
 
+--Responde si un grafo es conexo partiendo de un conjunto de nodos conexos entre sí.
 conexoDesde::Eq a => Grafo a -> [a] -> Bool
 conexoDesde grafo marcados = if conjuntosIguales marcados (nodos grafo)
 									then True
@@ -119,13 +136,15 @@ conexoDesde grafo marcados = if conjuntosIguales marcados (nodos grafo)
 											then False
 											else conexoDesde grafo (agrandarMarcados grafo marcados)
 
+-- Partiendo desde un grupo de nodos 'marcados', itero sobre cada uno y marco los vecinos, agrandando (o manteniendo igual) al conjunto.
 agrandarMarcados::Eq a => Grafo a -> [a] -> [a]
 agrandarMarcados grafo marcados = union marcados (concat (map (\x -> adyacenciasNoDirigidas grafo x) marcados))
--- Tengo un conjunto de nodos marcados. Itero sobre cada uno y marco los vecinos, agrandando (o manteniendo igual) al conjunto.
+
 
 -- Ej10
+--Responde si un grafo es un árbol
 esUnArbol::Eq a => Grafo a -> Bool
-esUnArbol grafo = not (enCiclo grafo) && (conexo grafo)
+esUnArbol grafo = not (tieneCicloNoDirigido grafo) && (conexo grafo)
 
 --Grafos de prueba--
 grafo1::Grafo Char

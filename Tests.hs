@@ -88,17 +88,17 @@ testsGrafo = test [
 	(agregarNodo 1 grafoVacio) ~=? (subgrafoInducido (agregarEje 1 2 (agregarNodo 2 (agregarNodo 1 grafoVacio))) [1]),
 	(agregarEje 1 2 (agregarNodo 2 (agregarNodo 1 grafoVacio))) ~=? (subgrafoInducido (agregarEje 3 1 (agregarEje 3 2 (agregarNodo 3 (agregarEje 1 2 (agregarNodo 2 (agregarNodo 1 grafoVacio)))))) [1,2]),
 	
-	-- Tests enCiclo
+	-- Tests tieneCicloNoDirigido
 	--sobre un grafo vacio
-	False ~=? enCiclo grafoVacio,
+	False ~=? tieneCicloNoDirigido grafoVacio,
 	--sobre un grafo con nodos y sin conexiones
-	False ~=? enCiclo (agregarNodo 2 (agregarNodo 1 grafoVacio)),
+	False ~=? tieneCicloNoDirigido (agregarNodo 2 (agregarNodo 1 grafoVacio)),
 	--sobre un grafo lineal
-	False ~=? enCiclo (agregarEje 3 2 (agregarEje 2 1 (agregarNodo 3 (agregarNodo 2 (agregarNodo 1 grafoVacio))))),
+	False ~=? tieneCicloNoDirigido (agregarEje 3 2 (agregarEje 2 1 (agregarNodo 3 (agregarNodo 2 (agregarNodo 1 grafoVacio))))),
 	--sobre un grafo con un ciclo
-	True ~=? enCiclo (agregarEje 1 3 (agregarEje 3 2 (agregarEje 2 1 (agregarNodo 3 (agregarNodo 2 (agregarNodo 1 grafoVacio)))))),
+	True ~=? tieneCicloNoDirigido (agregarEje 1 3 (agregarEje 3 2 (agregarEje 2 1 (agregarNodo 3 (agregarNodo 2 (agregarNodo 1 grafoVacio)))))),
 	--sobre un grafo con un nodo puente entre dos ciclos
-	True ~=? enCiclo (agregarEje 5 4 (agregarEje 4 5 (agregarEje 3 4 (agregarEje 2 3 (agregarEje 2 1 (agregarEje 1 2 (agregarNodo 5 (agregarNodo 4 (agregarNodo 3 (agregarNodo 2 (agregarNodo 1 grafoVacio))))))))))),
+	True ~=? tieneCicloNoDirigido (agregarEje 5 4 (agregarEje 4 5 (agregarEje 3 4 (agregarEje 2 3 (agregarEje 2 1 (agregarEje 1 2 (agregarNodo 5 (agregarNodo 4 (agregarNodo 3 (agregarNodo 2 (agregarNodo 1 grafoVacio))))))))))),
 	
 	-- Tests conexo
 	--sobre un grafo vacio
@@ -126,7 +126,14 @@ testsGrafo = test [
 	--sobre un grafo con todos los nodos conectados
 	True ~=? esUnArbol (agregarEje 3 1 (agregarEje 3 2 (agregarNodo 3 (agregarNodo 2 (agregarNodo 1 grafoVacio))))),
 	--sobre un grafo con ciclos
-	False ~=? esUnArbol (agregarEje 3 1 (agregarEje 3 2 (agregarEje 2 1 (agregarEje 2 3 (agregarNodo 3 (agregarNodo 2 (agregarNodo 1 grafoVacio)))))))
+	False ~=? esUnArbol (agregarEje 3 1 (agregarEje 3 2 (agregarEje 2 1 (agregarEje 2 3 (agregarNodo 3 (agregarNodo 2 (agregarNodo 1 grafoVacio))))))),
+
+	-- Tests auxiliares
+	True 	~=? (conjuntoIncluido [] [1]),
+	True 	~=? (conjuntoIncluido [1,1,1] [1]),
+	True 	~=? (conjuntoIncluido [1] [1,1,1]),
+	False 	~=? (conjuntoIncluido [2] [1]),
+	False 	~=? (conjuntoIncluido [1,1,1,2] [1])
 	]
 	
 ---------------
