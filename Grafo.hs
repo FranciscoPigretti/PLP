@@ -25,7 +25,8 @@ estanLosNodos ns grafo = all (`elem` (nodos grafo)) ns
 predecesores::Eq a => a -> Grafo a -> [a]
 predecesores nodo grafo = (filter (\nodo_origen -> elem nodo (adyacencias grafo nodo_origen)) (nodos grafo))
 
-sucesores:: a -> Grafo a -> [a] --Es un renombre de adyacencias
+--Es un renombre de adyacencias
+sucesores:: a -> Grafo a -> [a]
 sucesores = flip adyacencias
 
 adyacenciasNoDirigidas::Eq a =>Grafo a -> a  -> [a]
@@ -42,7 +43,7 @@ agregarNodo nodo grafo = if (not (estanLosNodos [nodo] grafo))
 
 -- Ej2			
 --Agrega un eje. Chequeamos: que los nodos no sean el mismo (para no agregar lazos),
--- que los nodos pertenezcan al grafo, y que no exista ya un eje entre ellos.
+-- que los nodos pertenezcan al grafo, y que no exista dicho eje entre ellos (el eje es dirigido).
 agregarEje::Eq a => a -> a -> Grafo a -> Grafo a
 agregarEje nodo1 nodo2 grafo = 	if not(nodo1 == nodo2) && (estanLosNodos [nodo1,nodo2] grafo && notElem nodo2 (adyacencias grafo nodo1))
 								then G (nodos grafo) (\x -> if x == nodo1 then nodo2 : (adyacencias grafo nodo1) else adyacencias grafo x)
@@ -56,7 +57,7 @@ sacarEje nodo1 nodo2 grafo = 	if (estanLosNodos [nodo1,nodo2] grafo && elem nodo
 								else grafo
 
 -- Ej4
---Saca un nodo solo si está en el grafo.
+--Saca un nodo y todos los ejes unidos a él, solo si éste es parte del grafo.
 sacarNodo::Eq a => a -> Grafo a -> Grafo a
 sacarNodo nodo grafo = 	if (estanLosNodos [nodo] grafo) 
 						then G (sacarDeLista nodo (nodos grafo)) (\x -> if elem nodo (adyacencias grafo x) then adyacencias (sacarEje x nodo grafo) x else adyacencias grafo x)
@@ -81,16 +82,17 @@ gradoIn nodo grafo = length (predecesores nodo grafo)
 --Devuelve el grado del nodo con mayor grado. Devuelve 0 si el grafo no tiene nodos.
 maximoGrado::Eq a => Grafo a -> Int
 maximoGrado grafo = if length (nodos grafo) > 0 
-					then maximum (map (flip grado grafo) (nodos grafo)) -- maximum no esta definido para listas vacias, asi que fallaba si el grafo no tenia nodos. Por eso el chequeo 
+					then maximum (map (flip grado grafo) (nodos grafo))
 					else 0
 
 -- Ej6 a)
---A la lista1 le saca los elementos que aparecen en la lista2. Si la lista1 tiene repetidos, estos quedan.
+--A la lista1 le saca los elementos que aparecen en la lista2.
 diferencia::Eq a => [a] -> [a] -> [a]
 diferencia lista1 lista2 = filter (`notElem` lista2) lista1 
 
 -- Ej6 b)
---Responde si el grafo1 es subgrafo del grafo2.
+--Responde si el grafo1 es subgrafo del grafo2. Verifica que los nodos del grafo1 estén en el grafo2 
+--y que las adyacencias de cada uno de los nodos del grafo1 formen parte del grafo2
 esSubgrafo::Eq a => Grafo a -> Grafo a -> Bool
 esSubgrafo grafo1 grafo2 = 	(estanLosNodos (nodos grafo1) grafo2)
 							&&
@@ -108,14 +110,16 @@ subgrafoInducido grafo nodos = if (estanLosNodos nodos grafo)
 									else error "el conjunto de nodos no es subconjunto de los nodos del grafo"
 
 -- Ej8
---Responde si el grafo tiene un ciclo no dirigido. Iterativamente saca los nodos con grado menos
--- a 2, hasta que ya no se puedan sacar más nodos. Si quedaron nodos en el grafo, entonces hay ciclo.
+--Responde si el grafo tiene un ciclo no dirigido. 
+--Primero verifica que el grafo tenga nodos, en caso contrario ya sabremos que no tiene ciclo.
+--Si tiene nodos, de forma iterativa iremos sacando nodos con grado menor a 2, hasta alcanzar las n iteraciones (siendo n la cantidad de nodos inicial del grafo).
+--De esta lista de n iteraciones, nos quedaremos con la última y preguntaremos por la cantidad de nodos de dicho grafo. Si tiene nodos entonces existe un ciclo.
+--Se realizan n iteraciones porque en el peor de los casos, en cada iteración eliminamos un nodo con grado menor a 2, generando un único nuevo nodo con grado 
+--menor a 2, hasta quedarnos sin nodos.
 tieneCicloNoDirigido::Eq a => Grafo a -> Bool
-tieneCicloNoDirigido grafo = chequearTerminacion (iterate sacarNodosDeGradoMenorADos grafo)
-
---Si los dos primeros grafos de una lista son iguales, entonces no se pudieron sacar más nodos.
-chequearTerminacion::Eq a => [Grafo a] -> Bool
-chequearTerminacion (x:xs) = if (x == head xs) then length (nodos x) > 1 else chequearTerminacion xs
+tieneCicloNoDirigido grafo = if length (nodos grafo) == 0
+								then False
+								else length (nodos (last (take (length (nodos grafo)) (iterate sacarNodosDeGradoMenorADos grafo)))) > 1
 
 --Devuelve el subgrafo inducido por los nodos que tienen grado mayor o igual a 2.
 sacarNodosDeGradoMenorADos::Eq a => Grafo a -> Grafo a
@@ -142,7 +146,7 @@ agrandarMarcados grafo marcados = union marcados (concat (map (\x -> adyacencias
 
 
 -- Ej10
---Responde si un grafo es un árbol
+--Verifica que el grafo no tenga ciclos y que sea conexo.
 esUnArbol::Eq a => Grafo a -> Bool
 esUnArbol grafo = not (tieneCicloNoDirigido grafo) && (conexo grafo)
 
