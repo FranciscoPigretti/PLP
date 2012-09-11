@@ -71,7 +71,10 @@ sacarNodo::Eq a => a -> Grafo a -> Grafo a
 sacarNodo nodo grafo = 
 	if (estanLosNodos [nodo] grafo) 
 		then G 	(sacarDeLista nodo (nodos grafo)) 
- (\x -> if elem nodo (adyacencias grafo x) then adyacencias (sacarEje x nodo grafo) x else adyacencias grafo x)
+ 				(\x -> 
+ 					if elem nodo (adyacencias grafo x) 
+ 						then adyacencias (sacarEje x nodo grafo) x 
+ 						else adyacencias grafo x)
 		else grafo
 
 -- Ej5 a)
